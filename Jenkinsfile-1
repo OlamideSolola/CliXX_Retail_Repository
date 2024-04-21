@@ -72,6 +72,7 @@ stage ('Configure DB Instance') {
             script {
                 def userInput = input(id: 'confirm', message: 'Is DB creation complete?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Complete?', name: 'confirm'] ])
              }
+             withCredentials([string(credentialsId: 'secret_key', variable: 'SECRET_KEY_VAR'),string(credentialsId: 'access_key', variable: 'ACCESS_KEY_VAR')]){
               sh '''
                USERNAME='wordpressuser'
                PASSWORD='W3lcome123'
@@ -83,7 +84,7 @@ stage ('Configure DB Instance') {
                mysql -u $USERNAME --password=$PASSWORD -h $SERVER_INSTANCE  -D  $DBNAME < ./db.setup
 
               '''
-          }
+          }}
         }
 stage ('Tear Down CliXX Docker Image and Database') {
           steps {
