@@ -133,7 +133,7 @@ stage('Restore CliXX Database') {
             python3 --version
             pip3 install boto3 botocore boto
             python3 -m pip install boto
-            /usr/bin/ansible-playbook -i localhost /var/lib/jenkins/workspace/stack-infra/docker_image_pipeline/CliXX_image_Deployment/deploy_db_ansible/deploy_db.yml
+            /usr/bin/ansible-playbook -i localhost /var/lib/jenkins/workspace/stack-infra/docker_image_pipeline/CliXX_image_deployment/CliXX_image_deployment_pipeline/deploy_db_ansible/deploy_db.yml
             deactivate
         '''
     }
