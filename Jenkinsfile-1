@@ -67,26 +67,47 @@ stage ('Restore CliXX Database') {
           }
         }
 
+// stage ('Configure DB Instance') {
+//           steps {
+//             // script {
+//             //     def userInput = input(id: 'confirm', message: 'Is DB creation complete?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Complete?', name: 'confirm'] ])
+//             //  }
+//              withCredentials([string(credentialsId: 'secret_key', variable: 'SECRET_KEY_VAR'),string(credentialsId: 'access_key', variable: 'ACCESS_KEY_VAR')]){
+//               sh '''
+//                USERNAME=${DB_USER_NAME}
+//                PASSWORD=${DB_PASSWORD}
+//                DBNAME=${DB_NAME}
+//                TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+//                SERVER_IP=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-ipv4`
+//                SERVER_INSTANCE=${SERVER_INSTANCE}
+//                echo "use wordpressdb;" >> ./db.setup
+//                echo "UPDATE wp_options SET option_value = '$SERVER_IP' WHERE option_value = '%NLB%'; " >> $WORKSPACE/db.setup
+//                mysql -u $USERNAME --password=$PASSWORD -h $SERVER_INSTANCE  -D $DBNAME < $WORKSPACE/db.setup
+
+//               '''
+//           }}
+//         }
+
 stage ('Configure DB Instance') {
           steps {
-            // script {
-            //     def userInput = input(id: 'confirm', message: 'Is DB creation complete?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Complete?', name: 'confirm'] ])
-            //  }
-             withCredentials([string(credentialsId: 'secret_key', variable: 'SECRET_KEY_VAR'),string(credentialsId: 'access_key', variable: 'ACCESS_KEY_VAR')]){
+              withCredentials([string(credentialsId: 'DB_USER_NAME', variable: 'DB_USER_NAME'), string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'), string(credentialsId: 'DB_NAME', variable: 'DB_NAME'), string(credentialsId: 'SERVER_INSTANCE', variable: 'SERVER_INSTANCE')]){
               sh '''
                USERNAME=${DB_USER_NAME}
                PASSWORD=${DB_PASSWORD}
                DBNAME=${DB_NAME}
-               TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
-               SERVER_IP=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-ipv4`
+               TOKEN=curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+               SERVER_IP=curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-ipv4
                SERVER_INSTANCE=${SERVER_INSTANCE}
-               echo "use wordpressdb;" >> ./db.setup
-               echo "UPDATE wp_options SET option_value = '$SERVER_IP' WHERE option_value = '%NLB%'; " >> $WORKSPACE/db.setup
-               mysql -u $USERNAME --password=$PASSWORD -h $SERVER_INSTANCE  -D $DBNAME < $WORKSPACE/db.setup
+               echo "use wordpressdb;" >> $WORKSPACE/db.setup
+               echo "UPDATE wp_options SET option_value = '$SERVER_IP' WHERE option_value LIKE 'NLB%';">> $WORKSPACE/db.setup
+               mysql -u $USERNAME --password=$PASSWORD -h $SERVER_INSTANCE  -D  $DBNAME < $WORKSPACE/db.setup
 
               '''
-          }}
-        }
+              }
+          }
+  }
+
+
 stage ('Tear Down CliXX Docker Image and Database') {
           steps {
              script {
